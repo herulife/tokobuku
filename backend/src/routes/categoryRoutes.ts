@@ -4,8 +4,8 @@ import {
     createCategory,
     updateCategory,
     deleteCategory,
-} from '../controllers/categoryController.js';
-import { protect, restrictTo } from '../middlewares/authMiddleware.js';
+} from '../controllers/categoryController';
+import { protect, restrictTo } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 

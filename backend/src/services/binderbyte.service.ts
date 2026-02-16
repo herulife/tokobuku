@@ -1,5 +1,5 @@
 import axios from 'axios';
-import prisma from '../lib/prisma.js';
+import prisma from '../lib/prisma';
 import { regencies, Regency } from '../data/region-data';
 import { districts, District } from '../data/district-data';
 

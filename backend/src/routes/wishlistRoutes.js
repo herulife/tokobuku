@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var express_1 = require("express");
+var wishlistController_js_1 = require("../controllers/wishlistController.js");
+var authMiddleware_js_1 = require("../middlewares/authMiddleware.js");
+var router = express_1.default.Router();
+router.use(authMiddleware_js_1.protect);
+router.get('/', wishlistController_js_1.getWishlist);
+router.post('/', wishlistController_js_1.addToWishlist);
+router.delete('/:bookId', wishlistController_js_1.removeFromWishlist);
+exports.default = router;

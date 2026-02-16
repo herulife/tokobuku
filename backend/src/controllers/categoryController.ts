@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { asyncHandler } from '../middlewares/asyncHandler.js';
-import { AppError } from '../utils/AppError.js';
+import { asyncHandler } from '../middlewares/asyncHandler';
+import { AppError } from '../utils/AppError';
 const prisma = new PrismaClient();
 
 const slugify = (text: string) => {

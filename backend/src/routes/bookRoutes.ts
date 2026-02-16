@@ -7,8 +7,8 @@ import {
     updateBook,
     deleteBook,
     deleteBulkBooks,
-} from '../controllers/bookController.js';
-import { protect, restrictTo } from '../middlewares/authMiddleware.js';
+} from '../controllers/bookController';
+import { protect, restrictTo } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
@@ -17,11 +17,11 @@ router.get('/slug/:slug', getBookBySlug);
 router.get('/:id', getBook);
 
 // Nested routes
-import reviewRouter from './reviewRoutes.js';
+import reviewRouter from './reviewRoutes';
 router.use('/:bookId/reviews', reviewRouter);
 
 // Admin only routes
-import { upload, resizeImage } from '../middlewares/uploadMiddleware.js';
+import { upload, resizeImage } from '../middlewares/uploadMiddleware';
 
 router.post('/bulk-delete', protect, restrictTo('ADMIN', 'SUPER_ADMIN'), deleteBulkBooks);
 

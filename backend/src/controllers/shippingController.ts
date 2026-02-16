@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import binderByteService from '../services/binderbyte.service.js';
-import prisma from '../lib/prisma.js';
+import binderByteService from '../services/binderbyte.service';
+import prisma from '../lib/prisma';
 
 class ShippingController {
     // Replaced getProvinces with searchDestination

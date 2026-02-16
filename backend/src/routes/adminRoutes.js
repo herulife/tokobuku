@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var express_1 = require("express");
+var adminController_js_1 = require("../controllers/adminController.js");
+var authMiddleware_js_1 = require("../middlewares/authMiddleware.js");
+var router = express_1.default.Router();
+router.use(authMiddleware_js_1.protect);
+router.use((0, authMiddleware_js_1.restrictTo)('ADMIN', 'SUPER_ADMIN'));
+router.get('/stats', adminController_js_1.getDashboardStats);
+exports.default = router;

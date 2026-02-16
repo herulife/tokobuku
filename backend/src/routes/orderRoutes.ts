@@ -9,9 +9,9 @@ import {
     updateOrderStatus,
     deleteOrder,
     uploadPaymentProof
-} from '../controllers/orderController.js';
-import { upload, processPaymentProof } from '../middlewares/uploadMiddleware.js';
-import { protect, restrictTo } from '../middlewares/authMiddleware.js';
+} from '../controllers/orderController';
+import { upload, processPaymentProof } from '../middlewares/uploadMiddleware';
+import { protect, restrictTo } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 

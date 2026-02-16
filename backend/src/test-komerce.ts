@@ -2,8 +2,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import komerceService from './services/rajaongkir.service.js';
-import prisma from './lib/prisma.js';
+import komerceService from './services/rajaongkir.service';
+import prisma from './lib/prisma';
 
 async function test() {
     console.log('--- TESTING KOMERCE SHIPPING SERVICE ---');

@@ -3,8 +3,8 @@ import {
     createReview,
     getBookReviews,
     deleteReview,
-} from '../controllers/reviewController.js';
-import { protect, restrictTo } from '../middlewares/authMiddleware.js';
+} from '../controllers/reviewController';
+import { protect, restrictTo } from '../middlewares/authMiddleware';
 
 const router = express.Router({ mergeParams: true });
 

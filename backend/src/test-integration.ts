@@ -1,5 +1,5 @@
-import service from './services/rajaongkir.service.js';
-import prisma from './lib/prisma.js';
+import service from './services/rajaongkir.service';
+import prisma from './lib/prisma';
 
 async function testIntegration() {
     try {

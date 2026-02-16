@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient, Prisma } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import { asyncHandler } from '../middlewares/asyncHandler.js';
-import { AppError } from '../utils/AppError.js';
+import { asyncHandler } from '../middlewares/asyncHandler';
+import { AppError } from '../utils/AppError';
 
 const prisma = new PrismaClient();
 
