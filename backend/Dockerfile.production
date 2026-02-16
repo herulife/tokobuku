@@ -1,9 +1,7 @@
-FROM node:20-alpine AS builder
+# Build stage - Using Debian for Prisma compatibility
+FROM node:20-slim AS builder
 
 WORKDIR /app
-
-# Install OpenSSL 1.1 for Prisma compatibility
-RUN apk add --no-cache openssl1.1-compat
 
 # Copy package files
 COPY package*.json ./
@@ -16,13 +14,13 @@ RUN npm ci --only=production && \
 # Copy built files
 COPY dist ./dist
 
-# Production stage
-FROM node:20-alpine
+# Production stage - Using Debian for Prisma compatibility
+FROM node:20-slim
 
 WORKDIR /app
 
-# Install OpenSSL 1.1 for Prisma compatibility and tini
-RUN apk add --no-cache tini openssl1.1-compat
+# Install tini for proper signal handling
+RUN apt-get update && apt-get install -y --no-install-recommends tini && rm -rf /var/lib/apt/lists/*
 
 # Copy from builder
 COPY --from=builder /app/node_modules ./node_modules
