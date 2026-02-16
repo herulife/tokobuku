@@ -23,8 +23,29 @@ import { validateEnv } from './utils/validateEnv';
 
 dotenv.config();
 
+// CRITICAL: Handle errors BEFORE anything else
+process.on('uncaughtException', (error: Error) => {
+    console.error('❌ UNCAUGHT EXCEPTION:', error.message);
+    console.error('Stack:', error.stack);
+    logger.error('UNCAUGHT EXCEPTION! Shutting down...', { error: error.message, stack: error.stack });
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
+    console.error('❌ UNHANDLED REJECTION at:', promise);
+    console.error('Reason:', reason);
+    logger.error('UNHANDLED REJECTION! Shutting down...', { reason });
+    process.exit(1);
+});
+
 // Validate environment variables
-validateEnv();
+try {
+    validateEnv();
+    console.log('✅ Environment validated');
+} catch (error) {
+    console.error('❌ Environment validation failed:', error);
+    process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -109,36 +130,43 @@ app.all('*', (req, res, next) => {
 // Global Error Handler
 app.use(errorHandler);
 
-// Start server
-app.listen(PORT, () => {
+// Start server and store reference
+const server = app.listen(PORT, () => {
     logger.info(`🚀 Server running on port ${PORT}`);
     logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
     logger.info(`CORS enabled for: ${process.env.CLIENT_URL || 'http://localhost:3000'}`);
     console.log(`\n✅ Server running on port ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health\n`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    console.log(`⏰ Server started at: ${new Date().toISOString()}`);
+    console.log(`🔄 Process will keep running...\n`);
 });
 
+// Keep server alive
+server.on('error', (error) => {
+    console.error('❌ Server error:', error);
+    logger.error('Server error', { error });
+});
+
+// Prevent premature exit
+process.stdin.resume();
+
 process.on('SIGINT', async () => {
+    console.log('\n🛑 SIGINT received, shutting down gracefully...');
     logger.info('Shutting down gracefully...');
+    server.close(() => {
+        console.log('✅ Server closed');
+    });
     await prisma.$disconnect();
     logger.info('Database connection closed');
     process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
+    console.log('\n🛑 SIGTERM received, shutting down gracefully...');
     logger.info('SIGTERM signal received: closing HTTP server');
+    server.close(() => {
+        console.log('✅ Server closed');
+    });
     await prisma.$disconnect();
     process.exit(0);
-});
-
-// Uncaught Exception Handler
-process.on('uncaughtException', (error: Error) => {
-    logger.error('UNCAUGHT EXCEPTION! Shutting down...', { error: error.message, stack: error.stack });
-    process.exit(1);
-});
-
-// Unhandled Rejection Handler
-process.on('unhandledRejection', (reason: any) => {
-    logger.error('UNHANDLED REJECTION! Shutting down...', { reason });
-    process.exit(1);
 });
