@@ -26,8 +26,8 @@ export const getAllBooks = asyncHandler(async (req: Request, res: Response, next
 
     if (search) {
         where.OR = [
-            { title: { contains: String(search), mode: 'insensitive' } },
-            { author: { contains: String(search), mode: 'insensitive' } },
+            { title: { contains: String(search) } },
+            { author: { contains: String(search) } },
         ];
     }
 
@@ -79,7 +79,8 @@ export const getAllBooks = asyncHandler(async (req: Request, res: Response, next
 });
 
 export const getBook = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.params; // This can be ID or Slug
+    const { id } = req.params;
+    const bookId = String(id); // Convert to string for Prisma
 
     // Check if it's a slug (looks like slug-string) or CUID/UUID
     // For simplicity, we can try both or assume slug if not CUID-like
@@ -88,7 +89,7 @@ export const getBook = asyncHandler(async (req: Request, res: Response, next: Ne
     // The prompt asked for /books/:id and /books/slug/:slug separately.
 
     const book = await prisma.book.findUnique({
-        where: { id },
+        where: { id: bookId },
         include: { category: true },
     });
 
@@ -103,7 +104,8 @@ export const getBook = asyncHandler(async (req: Request, res: Response, next: Ne
 });
 
 export const getBookBySlug = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { slug } = req.params;
+    const { slug: paramSlug } = req.params;
+    const slug = String(paramSlug); // Convert to string for Prisma
 
     const book = await prisma.book.findUnique({
         where: { slug },
@@ -168,6 +170,7 @@ export const createBook = asyncHandler(async (req: Request, res: Response, next:
 
 export const updateBook = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
+    const bookId = String(id); // Convert to string for Prisma
     const {
         title,
         author,
@@ -220,7 +223,7 @@ export const updateBook = asyncHandler(async (req: Request, res: Response, next:
     Object.keys(data).forEach(key => data[key] === undefined && delete data[key]);
 
     const updatedBook = await prisma.book.update({
-        where: { id },
+        where: { id: bookId },
         data,
     });
 
@@ -236,10 +239,11 @@ export const updateBook = asyncHandler(async (req: Request, res: Response, next:
 
 export const deleteBook = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
+    const bookId = String(id); // Convert to string for Prisma
 
     // Check if book has orders
     const inOrder = await prisma.orderItem.findFirst({
-        where: { bookId: id }
+        where: { bookId }
     });
 
     if (inOrder) {
@@ -247,7 +251,7 @@ export const deleteBook = asyncHandler(async (req: Request, res: Response, next:
     }
 
     await prisma.book.delete({
-        where: { id },
+        where: { id: bookId },
     });
 
     res.status(204).json({

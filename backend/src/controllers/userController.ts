@@ -89,6 +89,7 @@ export const getAllUsers = asyncHandler(async (req: Request, res: Response, next
 
 export const updateUserRole = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
+    const userId = String(id); // Convert to string for Prisma
     const { role } = req.body;
 
     if (!['USER', 'ADMIN', 'SUPER_ADMIN'].includes(role)) {
@@ -96,7 +97,7 @@ export const updateUserRole = asyncHandler(async (req: Request, res: Response, n
     }
 
     const user = await prisma.user.update({
-        where: { id },
+        where: { id: userId },
         data: { role },
         select: { id: true, name: true, email: true, role: true }
     });
@@ -142,15 +143,16 @@ export const createUser = asyncHandler(async (req: Request, res: Response, next:
 
 export const deleteUser = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
+    const userId = String(id); // Convert to string for Prisma
 
     // Prevent deleting self? Maybe.
     const currentUserId = (req as any).user.id;
-    if (id === currentUserId) {
+    if (userId === currentUserId) {
         return next(new AppError('Cannot delete yourself', 400));
     }
 
     await prisma.user.delete({
-        where: { id }
+        where: { id: userId }
     });
 
     res.status(204).json({

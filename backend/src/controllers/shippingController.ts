@@ -76,8 +76,9 @@ class ShippingController {
     }
     async checkConnection(req: Request, res: Response) {
         try {
-            const isConnected = await binderByteService.testConnection();
-            if (isConnected) {
+            // Test connection by attempting a simple search
+            const testResult = await binderByteService.searchDestination('Jakarta');
+            if (testResult && testResult.length >= 0) {
                 return res.json({ success: true, message: 'Connection successful' });
             } else {
                 return res.status(400).json({ success: false, message: 'Connection failed' });

@@ -7,7 +7,8 @@ const prisma = new PrismaClient();
 
 export const createReview = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const userId = (req as any).user.id;
-    const { bookId } = req.params;
+    const { bookId: paramBookId } = req.params;
+    const bookId = String(paramBookId); // Convert to string for Prisma
     const { rating, comment } = req.body;
 
     if (!rating || rating < 1 || rating > 5) {
@@ -75,7 +76,8 @@ export const createReview = asyncHandler(async (req: Request, res: Response, nex
 });
 
 export const getBookReviews = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { bookId } = req.params;
+    const { bookId: paramBookId } = req.params;
+    const bookId = String(paramBookId); // Convert to string for Prisma
 
     const reviews = await prisma.review.findMany({
         where: { bookId },
@@ -102,8 +104,9 @@ export const deleteReview = asyncHandler(async (req: Request, res: Response, nex
     const userId = (req as any).user.id;
     const userRole = (req as any).user.role;
     const { id } = req.params;
+    const reviewId = String(id); // Convert to string for Prisma
 
-    const review = await prisma.review.findUnique({ where: { id } });
+    const review = await prisma.review.findUnique({ where: { id: reviewId } });
 
     if (!review) {
         return next(new AppError('Review not found', 404));
@@ -114,7 +117,7 @@ export const deleteReview = asyncHandler(async (req: Request, res: Response, nex
         return next(new AppError('You update not authorized to delete this review', 403));
     }
 
-    await prisma.review.delete({ where: { id } });
+    await prisma.review.delete({ where: { id: reviewId } });
 
     // Recalculate book rating
     const bookId = review.bookId;

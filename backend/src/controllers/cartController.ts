@@ -105,7 +105,8 @@ export const addToCart = asyncHandler(async (req: Request, res: Response, next: 
 
 export const updateCartItem = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const userId = (req as any).user.id;
-    const { bookId } = req.params;
+    const { bookId: paramBookId } = req.params;
+    const bookId = String(paramBookId); // Convert to string for Prisma
     const { quantity } = req.body;
 
     if (quantity < 1) {
@@ -147,7 +148,8 @@ export const updateCartItem = asyncHandler(async (req: Request, res: Response, n
 
 export const removeCartItem = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const userId = (req as any).user.id;
-    const { bookId } = req.params;
+    const { bookId: paramBookId } = req.params;
+    const bookId = String(paramBookId); // Convert to string for Prisma
 
     const cart = await prisma.cart.findUnique({ where: { userId } });
     if (!cart) return next(new AppError('Cart not found', 404));

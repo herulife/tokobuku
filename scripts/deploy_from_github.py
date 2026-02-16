@@ -103,7 +103,7 @@ RATE_LIMIT_WINDOW=900000
 RATE_LIMIT_MAX=100
 """
         
-        execute(ssh, f"cat > {REMOTE_APP}/backend/.env << 'ENVEOF'\n{backend_env}\nENVEOF", show=False)
+        execute(client, f"cat > {REMOTE_APP}/backend/.env << 'ENVEOF'\n{backend_env}\nENVEOF", show=False)
         
         # Docker compose .env
         docker_env = f"""CINTABUKU_DB_PASSWORD={db_password}
@@ -112,20 +112,20 @@ KOMSHIP_API_KEY={komship_key}
 KOMSHIP_SELLER_CODE={komship_seller}
 """
         
-        execute(ssh, f"cat >> {REMOTE_BASE}/.env << 'DCEOF'\n{docker_env}\nDCEOF", show=False)
+        execute(client, f"cat >> {REMOTE_BASE}/.env << 'DCEOF'\n{docker_env}\nDCEOF", show=False)
         
         print("✅ Environment files created")
         
         # Copy Dockerfile to correct location
         print_step(4, "Setting Up Docker Configuration")
         
-        execute(ssh, f"cp {REMOTE_APP}/backend/Dockerfile.production {REMOTE_APP}/backend/Dockerfile || echo 'Dockerfile not found'", show=False)
+        execute(client, f"cp {REMOTE_APP}/backend/Dockerfile.production {REMOTE_APP}/backend/Dockerfile || echo 'Dockerfile not found'", show=False)
         
         # Update docker-compose.yml with proper paths
         print_step(5, "Updating Docker Compose")
         
         # Check if cintabuku-db already in docker-compose
-        check = execute(ssh, f"grep 'cintabuku-db:' {REMOTE_BASE}/docker-compose.yml || echo 'not found'", show=False)
+        check = execute(client, f"grep 'cintabuku-db:' {REMOTE_BASE}/docker-compose.yml || echo 'not found'", show=False)
         
         if "not found" in check:
             # Add services
@@ -165,20 +165,20 @@ KOMSHIP_SELLER_CODE={komship_seller}
             # Backup and add
             import time
             ts = int(time.time())
-            execute(ssh, f"cp {REMOTE_BASE}/docker-compose.yml {REMOTE_BASE}/docker-compose.yml.backup_{ts}", show=False)
-            execute(ssh, f"cat >> {REMOTE_BASE}/docker-compose.yml << 'CEOF'\n{compose_addition}\nCEOF", show=False)
+            execute(client, f"cp {REMOTE_BASE}/docker-compose.yml {REMOTE_BASE}/docker-compose.yml.backup_{ts}", show=False)
+            execute(client, f"cat >> {REMOTE_BASE}/docker-compose.yml << 'CEOF'\n{compose_addition}\nCEOF", show=False)
             
             # Add volume if not exists
-            vol_check = execute(ssh, f"grep 'cintabuku_db:' {REMOTE_BASE}/docker-compose.yml || echo 'not found'", show=False)
+            vol_check = execute(client, f"grep 'cintabuku_db:' {REMOTE_BASE}/docker-compose.yml || echo 'not found'", show=False)
             if "not found" in vol_check:
-                execute(ssh, f"echo '\n  cintabuku_db:' >> {REMOTE_BASE}/docker-compose.yml", show=False)
+                execute(client, f"echo '\n  cintabuku_db:' >> {REMOTE_BASE}/docker-compose.yml", show=False)
         
         print("✅ Docker Compose updated")
         
         # Update Nginx if not done
         print_step(6, "Updating Nginx Configuration")
         
-        nginx_check = execute(ssh, f"grep 'cintabuku.com' {REMOTE_BASE}/nginx/nginx.conf || echo 'not found'", show=False)
+        nginx_check = execute(client, f"grep 'cintabuku.com' {REMOTE_BASE}/nginx/nginx.conf || echo 'not found'", show=False)
         
         if "not found" in nginx_check:
             nginx_config = """
@@ -192,7 +192,7 @@ server {
     }
 }
 """
-            execute(ssh, f"cat >> {REMOTE_BASE}/nginx/nginx.conf << 'NEOF'\n{nginx_config}\nNEOF", show=False)
+            execute(client, f"cat >> {REMOTE_BASE}/nginx/nginx.conf << 'NEOF'\n{nginx_config}\nNEOF", show=False)
             print("✅ Nginx config added")
         else:
             print("✅ Nginx already configured")
@@ -201,34 +201,34 @@ server {
         print_step(7, "Building Docker Images")
         print("📦 Building backend image (this may take 3-5 minutes)...")
         
-        execute(ssh, f"cd {REMOTE_BASE} && echo '{VPS_PASS}' | sudo -S docker compose build cintabuku-backend")
+        execute(client, f"cd {REMOTE_BASE} && echo '{VPS_PASS}' | sudo -S docker compose build cintabuku-backend")
         
         print_step(8, "Starting Containers")
         
-        execute(ssh, f"cd {REMOTE_BASE} && echo '{VPS_PASS}' | sudo -S docker compose up -d cintabuku-db")
+        execute(client, f"cd {REMOTE_BASE} && echo '{VPS_PASS}' | sudo -S docker compose up -d cintabuku-db")
         
         print("\n⏳ Waiting 15 seconds for database...")
         import time
         time.sleep(15)
         
-        execute(ssh, f"cd {REMOTE_BASE} && echo '{VPS_PASS}' | sudo -S docker compose up -d cintabuku-backend")
+        execute(client, f"cd {REMOTE_BASE} && echo '{VPS_PASS}' | sudo -S docker compose up -d cintabuku-backend")
         
         print_step(9, "Running Database Migrations")
         
         print("⏳ Waiting for backend to be ready...")
         time.sleep(10)
         
-        execute(ssh, f"echo '{VPS_PASS}' | sudo -S docker exec cintabuku-backend npx prisma migrate deploy || echo 'Migrations pending'")
+        execute(client, f"echo '{VPS_PASS}' | sudo -S docker exec cintabuku-backend npx prisma migrate deploy || echo 'Migrations pending'")
         
         print_step(10, "Restarting Nginx")
         
-        execute(ssh, f"cd {REMOTE_BASE} && echo '{VPS_PASS}' | sudo -S docker compose restart nginx")
+        execute(client, f"cd {REMOTE_BASE} && echo '{VPS_PASS}' | sudo -S docker compose restart nginx")
         
         # Verification
         print_step(11, "Verification")
         
         print("\n📊 Container Status:")
-        execute(ssh, f"echo '{VPS_PASS}' | sudo -S docker ps | grep cintabuku")
+        execute(client, f"echo '{VPS_PASS}' | sudo -S docker ps | grep cintabuku")
         
         print("\n✅ Deployment Complete!")
         print("\n" + "="*70)
