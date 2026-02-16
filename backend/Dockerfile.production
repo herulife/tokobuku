@@ -2,13 +2,16 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Install OpenSSL 1.1 for Prisma compatibility
+RUN apk add --no-cache openssl1.1-compat
+
 # Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install dependencies and generate Prisma client
 RUN npm ci --only=production && \
-    npx prisma generate
+  npx prisma generate
 
 # Copy built files
 COPY dist ./dist
@@ -18,8 +21,8 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install tini for proper signal handling
-RUN apk add --no-cache tini
+# Install OpenSSL 1.1 for Prisma compatibility and tini
+RUN apk add --no-cache tini openssl1.1-compat
 
 # Copy from builder
 COPY --from=builder /app/node_modules ./node_modules
@@ -29,7 +32,7 @@ COPY package*.json ./
 
 # Create necessary directories
 RUN mkdir -p /app/logs /app/uploads && \
-    chown -R node:node /app
+  chown -R node:node /app
 
 # Use non-root user
 USER node
