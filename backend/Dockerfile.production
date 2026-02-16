@@ -1,37 +1,39 @@
-# Build stage - Using Debian for Prisma compatibility
+# Build stage - Clean Debian build from source
 FROM node:20-slim AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files and prisma schema
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies and generate Prisma client
+# Install dependencies FRESH in Debian environment (generates glibc Prisma binaries)
 RUN npm ci --only=production && \
   npx prisma generate
 
-# Copy built files
-COPY dist ./dist
+# Copy source code
+COPY tsconfig.json ./
+COPY src ./src
 
-# Production stage - Using Debian for Prisma compatibility
+# Build TypeScript
+RUN npm install typescript && \
+  npm run build
+
+# Production stage
 FROM node:20-slim
 
 WORKDIR /app
 
-# Install tini for proper signal handling
+# Install tini
 RUN apt-get update && apt-get install -y --no-install-recommends tini && rm -rf /var/lib/apt/lists/*
 
-# Copy from builder
+# Copy from builder (now has clean Debian/glibc binaries)
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY package*.json ./
 
-# Regenerate Prisma client for Debian/glibc (critical for compatibility)
-RUN npx prisma generate
-
-# Create necessary directories
+# Create directories
 RUN mkdir -p /app/logs /app/uploads && \
   chown -R node:node /app
 
@@ -45,6 +47,6 @@ EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:5000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Use tini as entrypoint for proper signal handling
-ENTRYPOINT ["/sbin/tini", "--"]
+# Use tini
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["node", "dist/index.js"]
