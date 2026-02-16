@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  password       String
+  name           String
+  avatar         String?   @default("https://i.pravatar.cc/150?u=default")
+  role           String    @default("USER") // USER | ADMIN | SUPER_ADMIN
+  wishlists      Wishlist[]
+  carts          Cart[]
+  orders         Order[]
+  reviews        Review[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Book {
+  id            String       @id @default(cuid())
+  title         String
+  slug          String       @unique // from title
+  author        String
+  publisher     String?
+  isbn          String?      @unique
+  description   String?      // SQLite doesn't support @db.Text
+  price         Int
+  discountPrice Int?
+  stock         Int          @default(0)
+  weight        Int          @default(300) // Berat dalam gram
+  coverImage    String
+  samplePdf     String?
+  categoryId    String
+  category      Category     @relation(fields: [categoryId], references: [id])
+  isPreorder    Boolean      @default(false)
+  preorderDate  DateTime?
+  rating        Float?       @default(0)
+  totalRating   Int          @default(0)
+  pages         Int?
+  language      String?      @default("Indonesia")
+  publishedDate DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  wishlistItems Wishlist[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  reviews       Review[]
+}
+
+model Category {
+  id     String   @id @default(cuid())
+  name   String   @unique
+  slug   String   @unique
+  books  Book[]
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookId    String
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, bookId])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  bookId    String
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, bookId])
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  invoiceNumber   String        @unique // format: INV/YYYYMMDD/xxxx
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  total           Int
+  status          String        @default("PENDING") // SQLite doesn't support enums
+  paymentMethod   String?
+  paymentProof    String?
+  shippingAddress String        // SQLite doesn't support @db.Text
+  destinationCityId String?     // RajaOngkir city ID
+  shippingCost    Int?          @default(0)
+  courier         String?
+  resi            String?
+  paidAt          DateTime?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  bookId    String
+  book      Book     @relation(fields: [bookId], references: [id])
+  quantity  Int
+  price     Int      // price at purchase (including discount)
+  createdAt DateTime @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookId    String
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, bookId])
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

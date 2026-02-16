@@ -1,0 +1,61 @@
+# Node dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production builds
+build/
+dist/
+.next/
+out/
+build_output/
+
+# Environment files (SENSITIVE!)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Uploads (user generated content)
+uploads/
+backend/uploads/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.zip
+*.tar.gz
+
+# Scripts outputs
+darussunnah2/
+vps_inspection.log
+
+# Local Prisma migrations (optional)
+# backend/prisma/migrations/
