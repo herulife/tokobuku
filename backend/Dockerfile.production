@@ -28,6 +28,9 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY package*.json ./
 
+# Regenerate Prisma client for Debian/glibc (critical for compatibility)
+RUN npx prisma generate
+
 # Create necessary directories
 RUN mkdir -p /app/logs /app/uploads && \
   chown -R node:node /app
