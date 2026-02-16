@@ -1,14 +1,9 @@
 import winston from 'winston';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
 
-// ES module equivalent of __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Create logs directory if it doesn't exist
-const logsDir = path.join(__dirname, '../../logs');
+// CommonJS - use process.cwd() instead of __dirname
+const logsDir = path.join(process.cwd(), 'logs');
 if (!fs.existsSync(logsDir)) {
     fs.mkdirSync(logsDir, { recursive: true });
 }
