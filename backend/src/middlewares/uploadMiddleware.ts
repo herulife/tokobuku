@@ -7,7 +7,8 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/AppError';
 
 // Ensure upload directory exists
-const uploadDir = 'public/uploads';
+// Ensure upload directory exists (maps to /app/uploads in Docker)
+const uploadDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }

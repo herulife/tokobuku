@@ -17,7 +17,7 @@ import settingRoutes from './routes/settingRoutes';
 import shippingRoutes from './routes/shippingRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 import { AppError } from './utils/AppError';
-import rateLimit from 'express-rate-limit';
+
 import logger from './utils/logger';
 import { validateEnv } from './utils/validateEnv';
 
@@ -64,23 +64,7 @@ app.use(cors({
 }));
 
 // Rate Limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again later.',
-    standardHeaders: true,
-    legacyHeaders: false,
-    handler: (req, res) => {
-        logger.warn(`Rate limit exceeded for IP: ${req.ip}`);
-        res.status(429).json({
-            status: 'error',
-            message: 'Too many requests, please try again later.'
-        });
-    }
-});
 
-// Apply rate limiting to all API routes
-app.use('/api/', limiter);
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -92,7 +76,7 @@ app.use((req, res, next) => {
 });
 
 // Serve static uploads
-app.use('/uploads', express.static('public/uploads'));
+app.use('/uploads', express.static('uploads'));
 
 // Routes
 app.use('/api/v1/auth', authRoutes);

@@ -14,7 +14,7 @@ const generateInvoiceNumber = () => {
 
 export const createOrder = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const userId = (req as any).user.id;
-    const { shippingAddress, paymentMethod, courier } = req.body;
+    const { shippingAddress, paymentMethod, courier, shippingCost, destinationCityId } = req.body;
 
     if (!shippingAddress || !paymentMethod) {
         return next(new AppError('Shipping address and payment method are required', 400));
@@ -53,6 +53,10 @@ export const createOrder = asyncHandler(async (req: Request, res: Response, next
         });
     }
 
+    // Add shipping cost to total if present
+    const finalShippingCost = shippingCost ? Number(shippingCost) : 0;
+    total += finalShippingCost;
+
     // 3. Create Order Transaction
     const order = await prisma.$transaction(async (tx) => {
         // Create Order
@@ -64,6 +68,8 @@ export const createOrder = asyncHandler(async (req: Request, res: Response, next
                 status: 'PENDING',
                 paymentMethod,
                 shippingAddress,
+                destinationCityId,
+                shippingCost: finalShippingCost,
                 courier,
                 items: {
                     create: orderItemsData
